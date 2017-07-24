@@ -1,0 +1,43 @@
+#!/usr/bin/env bats
+
+@test "Check for comments in sql files" {
+  for file in $(find resources -type f); do
+    local test=$(cat "$file" | grep -p -e '--')
+    if [[ ! -z $test ]] ; then
+      echo "we have comments - need to remove comments"
+      exit 1
+    fi
+  done
+}
+
+@test "Check for semicolons in sql files" {
+  for file in $(find resources/dw -type f); do
+    local test=$(cat "$file" | grep -p -e ';')
+    if [[ ! -z $test ]]; then exit 1; fi
+  done
+  for file in $(find resources/apc -type f); do
+    local test=$(cat "$file" | grep -p -e ';')
+    if [[ ! -z $test ]]; then exit 1; fi
+  done
+}
+
+@test "Files in resources/ dir end w/ file extention *.sql or *.hql" {
+  for file in $(find resources -type f); do
+    [[ $file =~ \.[hs]ql$ ]] || [[ $file =~ error.tmpl$ ]] || exit 1
+  done
+}
+
+@test "Test with_backoff function works as expected" {
+  source src/util
+
+  # Happy path works as expected
+  [[ $(with_backoff "curl google.com" >/dev/null 2>&1; echo $?) -eq 0 ]] || exit 1
+
+  [[ $(max_attempts=1 with_backoff "echo 'success' | grep success" >/dev/null 2>&1; echo $?) -eq 0 ]] || exit 1
+
+  # Sad path works as expected
+  [[ $(max_attempts=1 with_backoff "echo 'fail' | grep success" >/dev/null 2>&1; echo $?) -ne 0 ]] || exit 1
+
+  [[ $(max_attempts=1 with_backoff "curl non-existent-domain" >/dev/null 2>&1; echo $?) -ne 0 ]] || exit 1
+
+}

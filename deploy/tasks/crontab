@@ -1,0 +1,11 @@
+## -- variables -----------------------------------
+  SHELL=/bin/bash
+  PATH=:/bin:/usr/bin:/usr/local/bin:/usr/sbin:/usr/local/sbin
+  MAILTO=john.skilbeck@gmail.com
+  cmd="deploy/bin/run-job"
+  app_dir="/home/skilbjo/deploy/app/deployment-monitor"
+
+## -- jobs ----------------------------------------
+
+## -- clear the cache -----------------------------
+

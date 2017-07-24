@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -eou pipefail
+
+source /src/util
+wource /src/error-handling
+
+monitor() {
+  case "$@" in
+    hourly)
+
+      check_jobs
+
+      # Report
+      email_digest_report 'hourly'
+
+      ;;
+    daily)
+
+      check_jobs
+
+      # Report
+      email_digest_report 'daily'
+      ;;
+
+    *)
+      echo "No arguments given - please provide an argument"; exit 1
+      ;;
+  esac
+}
+
+add_env_vars
+monitor "$@"

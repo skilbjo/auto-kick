@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+add_env_vars(){
+  echo "[default]" > ~/.aws/credentials
+  echo "aws_access_key_id = ${AWS_ACCESS_KEY_ID:-some-id}" >> ~/.aws/credentials
+  echo "aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY:-some-key}" >> ~/.aws/credentials
+}
+
+cron_check(){
+  case "$@" in
+    business-hours)
+      if [ "$(date +%H)" -ge 6 -a "$(date +%H)" -le 17 ]; then
+        echo "Business hours match... proceeding..."
+      else
+        exit 0      # silent exit - we don't care if not during business hours
+      fi ;;
+    weekday)
+      case "$(date +%a)" in
+        Mon | Tue | Wed | Thu | Fri)
+          echo "Weekday match... proceeding..."
+          ;;
+        Sat | Sun)
+          exit 0 ;; # silently exit - we don't care if not a weekday
+      esac
+      ;;
+    *)
+      ;;
+  esac
+}
+
+with_backoff() {
+  local f="$@"
+  set +u
+  local max_attempts=${max_attempts:-5}
+  local max_timeout_in_mins=${max_timeout_in_mins:-5}
+  set -u
+  local attempt=1
+  local exit_code=0
+  local timeout_in_mins=1
+
+  while [[ $attempt -le $max_attempts ]] && [[ $timeout_in_mins -le $max_timeout_in_mins ]]; do
+    set +e
+
+    eval $f
+
+    exit_code=$?
+    set -e
+
+    if [[ $exit_code == 0 ]]; then
+      break
+    fi
+
+    sleep $(echo "(($timeout_in_mins * 60))" | bc)
+    attempt=$(( attempt + 1 ))
+    timeout_in_mins=$(( timeout_in_mins * 2 ))
+  done
+
+  if [[ $exit_code != 0 ]]; then
+    echo "You've failed me for the last time! ($@)" 1>&2
+  fi
+
+  return $exit_code
+}

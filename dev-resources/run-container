@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -eou pipefail
+
+docker run -it "$(basename $(dirname $(pwd)))":dev bash
+
