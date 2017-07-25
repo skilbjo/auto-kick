@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -eou pipefail
 
-docker run -it "$(basename $(dirname $(pwd)))":dev bash
+dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+app_name=$(basename $(dirname $dir))
 
+docker run -it "$app_name":dev bash

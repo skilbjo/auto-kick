@@ -21,23 +21,23 @@
   done
 }
 
-@test "Files in resources/ dir end w/ file extention *.sql or *.hql" {
-  for file in $(find resources -type f); do
-    [[ $file =~ \.[hs]ql$ ]] || [[ $file =~ error.tmpl$ ]] || exit 1
-  done
-}
+#@test "Files in resources/ dir end w/ file extention *.sql or *.hql" {
+  #for file in $(find resources -type f); do
+    #[[ $file =~ \.[hs]ql$ ]] || [[ $file =~ error.tmpl$ ]] || exit 1
+  #done
+#}
 
-@test "Test with_backoff function works as expected" {
-  source src/util
+#@test "Test with_backoff function works as expected" {
+  #source src/util
 
-  # Happy path works as expected
-  [[ $(with_backoff "curl google.com" >/dev/null 2>&1; echo $?) -eq 0 ]] || exit 1
+  ## Happy path works as expected
+  #[[ $(with_backoff "curl google.com" >/dev/null 2>&1; echo $?) -eq 0 ]] || exit 1
 
-  [[ $(max_attempts=1 with_backoff "echo 'success' | grep success" >/dev/null 2>&1; echo $?) -eq 0 ]] || exit 1
+  #[[ $(max_attempts=1 with_backoff "echo 'success' | grep success" >/dev/null 2>&1; echo $?) -eq 0 ]] || exit 1
 
-  # Sad path works as expected
-  [[ $(max_attempts=1 with_backoff "echo 'fail' | grep success" >/dev/null 2>&1; echo $?) -ne 0 ]] || exit 1
+  ## Sad path works as expected
+  #[[ $(max_attempts=1 with_backoff "echo 'fail' | grep success" >/dev/null 2>&1; echo $?) -ne 0 ]] || exit 1
 
-  [[ $(max_attempts=1 with_backoff "curl non-existent-domain" >/dev/null 2>&1; echo $?) -ne 0 ]] || exit 1
+  #[[ $(max_attempts=1 with_backoff "curl non-existent-domain" >/dev/null 2>&1; echo $?) -ne 0 ]] || exit 1
 
-}
+#}
