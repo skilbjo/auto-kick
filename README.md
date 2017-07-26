@@ -17,4 +17,4 @@ restarts them.
 
 ## environment variables
 
-    export foo=
+    export distro_list=

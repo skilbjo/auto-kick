@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -eou pipefail
+
+check_jobs() {
+  jobs=$1
+
+  for job in "${jobs[@]}"; do
+    local job_state=$(docker ps | grep $job | xargs docker inspect | jq '.[].State')
+    local started_at=$(echo $job_state | jq '.[].State.StartedAt' | xargs date -d +%s)
+    local finished_at=$(echo $job_state | jq '.[].State.FinishedAt' | xargs date -d +%s)
+    local duration=$(echo "$started_at - $finished_at" | bc)
+    local three_days=$(echo "3 * 24 * 60 * 60" | bc)      # in seconds
+
+    if [[ $(echo $job_state | jq '.Running') == "running" ]] && \
+       [[ $duration -gt $three_days ]]; then
+      break
+    fi
+    docker ps --format='table {{.Image}}\t{{.ID}}\t{{.Status}}'
+    echo $job
+  done
+}

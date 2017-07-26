@@ -9,87 +9,14 @@ slack() {
     https://hooks.slack.com/services/${SLACK_HOOK}
 }
 
+email() {
+  local msg=$1
+
+  printf "$msg" | mutt -s "Auto kick error at: $(date -I)" -- $distro_list
+}
+
 error_handler() {
   local msg="$1"
 
-  slack "$msg"
-}
-
-email() {
-  local msg=$1
-  set +u
-  local escalate_to_devops=$2
-  set -u
-  local distro_list=$DISTRO_LIST
-
-  set +u
-  if [[ $escalate_to_devops ]]; then
-    distro_list="$DISTRO_LIST_DEVOPS"
-  fi
-  set -u
-
-  printf "$msg" | mutt -s "DW monitoring error at: $(date -I)" -- $distro_list
-}
-
-function error_handler() {
-  local msg="$1"
-  set +u
-  local digest_report=$2
-  local escalate_to_devops=$3
-  set -u
-
-  set +u
-  if [[ ! -z $digest_report ]]; then
-    msg="${msg} \n \
-    Digest report: \n \
-    $(while IFS= read -r line; do echo "${line} \n"; done < /out/report.csv)"
-  fi
-
-  if [[ ! -z $escalate_to_devops ]] && [[ $ENV == "prod" ]]; then
-    escalate_to_devops="true"
-  else
-    escalate_to_devops=""
-  fi
-  set -u
-
-  set +u
-  slack "$msg" $digest_report $escalate_to_devops
-  honeybadger "$msg" $digest_report
-
-  if [[ $escalate_to_devops ]]; then
-    email "$msg" $escalate_to_devops
-  fi
-  set -u
-}
-trap error_handler SIGINT SIGTERM
-
-function email_digest_report() {
-  local monitor_type="$1"
-  local staging_report='/tmp/staging_report.csv'
-  local line_count=$(cat "$staging_report" | awk -F ',' 'NR>0{print $3}' | grep -v 'valid' | wc -l)
-
-  if [[ $line_count -ne 0 ]]; then
-    # Clean up report for just errors
-    cat "$staging_report" | grep -v 'valid' > '/out/report.csv'
-
-    # Email out
-    chown -R postfix /var/spool/postfix/
-    chown root /var/spool/postfix/
-    chown root /var/spool/postfix/pid
-    postmap /etc/postfix/generic
-    postfix start
-    sleep 5
-
-    printf "Status report for $(date +%Y-%m-%d): \n\n$(cat "/out/report.csv")" | \
-      mutt -s "Status report for: $(date -I)" -- $DISTRO_LIST
-    sleep 5
-
-    # Slack / Honeybadger / Pagerduty
-    case "$monitor_type" in
-      (psql)
-        error_handler "refresh errors." \
-                       digest_report;;
-      (*) echo "Craft your own digest error message here" ;;
-    esac
-  fi
+  email "$msg"
 }

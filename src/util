@@ -1,31 +1,12 @@
 #!/usr/bin/env bash
 
 add_env_vars(){
-  echo "[default]" > ~/.aws/credentials
-  echo "aws_access_key_id = ${AWS_ACCESS_KEY_ID:-some-id}" >> ~/.aws/credentials
-  echo "aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY:-some-key}" >> ~/.aws/credentials
-}
+  for var in "$(env)"; do
+    export "$var"
+  done
 
-cron_check(){
-  case "$@" in
-    business-hours)
-      if [ "$(date +%H)" -ge 6 -a "$(date +%H)" -le 17 ]; then
-        echo "Business hours match... proceeding..."
-      else
-        exit 0      # silent exit - we don't care if not during business hours
-      fi ;;
-    weekday)
-      case "$(date +%a)" in
-        Mon | Tue | Wed | Thu | Fri)
-          echo "Weekday match... proceeding..."
-          ;;
-        Sat | Sun)
-          exit 0 ;; # silently exit - we don't care if not a weekday
-      esac
-      ;;
-    *)
-      ;;
-  esac
+  echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa && \
+    chmod 400 ~/.ssh/id_rsa
 }
 
 with_backoff() {

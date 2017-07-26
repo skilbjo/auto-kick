@@ -1,27 +1,23 @@
 #!/usr/bin/env bash
 set -eou pipefail
 
-source /src/util
-wource /src/error-handling
+resources_dir="/usr/local/resources"
+src_dir="/usr/local/src"
+
+source "$src_dir/check-jobs"
+source "$src_dir/util"
+source "$src_dir/error-handling"
 
 monitor() {
   case "$@" in
     hourly)
+      jobs="$(cat $resources_dir/jobs)"
 
-      check_jobs
-
-      # Report
-      email_digest_report 'hourly'
-
+      check_jobs $jobs
       ;;
     daily)
-
       check_jobs
-
-      # Report
-      email_digest_report 'daily'
       ;;
-
     *)
       echo "No arguments given - please provide an argument"; exit 1
       ;;
