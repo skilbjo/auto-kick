@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -eou pipefail
 
-resources_dir="/usr/local/resources"
-src_dir="/usr/local/src"
+#resources_dir="/usr/local/resources"
+#src_dir="/usr/local/src"
+resources_dir="resources"
+src_dir="src"
 
 source "$src_dir/check-jobs"
 source "$src_dir/util"
@@ -11,9 +13,7 @@ source "$src_dir/error-handling"
 monitor() {
   case "$@" in
     hourly)
-      jobs="$(cat $resources_dir/jobs)"
-
-      check_jobs $jobs
+      check_jobs
       ;;
     daily)
       check_jobs
